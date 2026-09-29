@@ -18,14 +18,18 @@ export class InternalKbEngine {
 
     // Agricultural technical synonym expansion map
     const SYNONYM_MAP: Record<string, string[]> = {
-      'fumigacion': ['aplicacion', 'fitosanitario', 'plaguicida', 'tratamiento'],
+      'fumigacion': ['aplicacion', 'fitosanitario', 'plaguicida', 'tratamiento', 'ropa de fumigacion'],
       'fumigar': ['aplicar', 'fitosanitario', 'tratamiento'],
       'quimico': ['sintetico', 'agroquimico', 'fitosanitario', 'sustancia'],
       'veneno': ['plaguicida', 'fitosanitario', 'quimico'],
       'transgenico': ['ogm', 'organismos geneticamente modificados', 'semilla transgenica'],
       'transgenicos': ['ogm', 'organismos geneticamente modificados'],
       'ogm': ['transgenico', 'modificacion genetica', 'material de propagacion'],
-      'epp': ['equipo de proteccion personal', 'mascarilla', 'guantes', 'overol', 'proteccion'],
+      'epp': ['equipo de proteccion personal', 'mascarilla', 'guantes', 'overol', 'proteccion', 'vestimenta', 'ropa'],
+      'epi': ['equipo de proteccion personal', 'mascarilla', 'guantes', 'overol', 'proteccion', 'vestimenta', 'ropa'],
+      'ropa': ['epi', 'vestimenta', 'overol', 'equipo de proteccion', 'ropa de fumigacion'],
+      'vestimenta': ['ropa', 'epi', 'overol', 'equipo de proteccion'],
+      'empacadora': ['empaque', 'poscosecha', 'manipulacion del producto'],
       'mascarilla': ['epp', 'equipo de proteccion', 'respirador'],
       'bano': ['inodoro', 'servicios higienicos', 'letrina', 'higiene'],
       'banos': ['inodoro', 'servicios higienicos', 'letrina', 'higiene'],
@@ -35,7 +39,13 @@ export class InternalKbEngine {
       'calibracion': ['inspeccion anual', 'equipos de aplicacion', 'boquillas', 'pulverizadora'],
       'buffer': ['zona de amortiguamiento', 'barrera viva', 'linderos', 'aislamiento'],
       'amortiguamiento': ['buffer', 'barrera de proteccion', 'distancia minima'],
-      'transicion': ['periodo de conversion', 'reconversion', 'tiempo de espera']
+      'transicion': ['conversion', 'reconversion', 'periodo de conversion', 'meses', '36 meses', 'tiempo'],
+      'conversion': ['transicion', 'reconversion', 'periodo de transicion', 'meses', '36 meses'],
+      'joven': ['menor', '14 anos', 'trabajo infantil', 'menores de 15', 'edad minima'],
+      '14': ['14 anos', 'menor de edad', 'trabajo infantil', 'menores de 15', 'joven'],
+      'papa': ['padre', 'padres', 'tutor', 'autorizacion', 'permiso'],
+      'autorizacion': ['permiso', 'consentimiento', 'padres', 'papa'],
+      'permiso': ['autorizacion', 'consentimiento', 'padres', 'papa']
     };
 
     const expandedTokens = [...tokens];
@@ -63,16 +73,57 @@ export class InternalKbEngine {
         reasons.push(`Coincidencia directa con código normativo: ${item.code}`);
       }
 
-      // 2. Keyword matches
+      // 2. Keyword matches (multi-word phrases weighted +45, single words +25)
       for (const kw of item.keywords) {
         const cleanKw = kw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         if (cleanQuery.includes(cleanKw)) {
-          score += 20;
+          const isMultiWord = cleanKw.includes(' ');
+          score += isMultiWord ? 45 : 25;
           reasons.push(`Coincidencia con término clave: "${kw}"`);
         }
       }
 
-      // 3. Common false premise match
+      // 3. Domain topic-specific boosts
+      // A) Transition / conversion
+      if (
+        (cleanQuery.includes('transicion') || cleanQuery.includes('conversion') || cleanQuery.includes('meses')) &&
+        item.id === 'org-ec-art-17-transicion'
+      ) {
+        score += 70;
+        reasons.push('Coincidencia temática prioritaria: Periodo de Transición/Conversión (Art. 17)');
+      }
+
+      // B) PPE / Clothing in packhouse
+      if (
+        (cleanQuery.includes('ropa') || cleanQuery.includes('vestimenta') || cleanQuery.includes('overol') || cleanQuery.includes('epi')) &&
+        (cleanQuery.includes('fumiga') || cleanQuery.includes('empacadora') || cleanQuery.includes('entrar')) &&
+        item.id === 'ifa6-fv-20-03-epi'
+      ) {
+        score += 70;
+        reasons.push('Coincidencia temática prioritaria: Equipos de Protección Individual y Vestimenta (FV-GFS 20.03)');
+      }
+
+      // C) Child labor / Age 14
+      if (
+        (cleanQuery.includes('14') || cleanQuery.includes('menor') || cleanQuery.includes('infantil') || cleanQuery.includes('joven')) &&
+        (cleanQuery.includes('trabaj') || cleanQuery.includes('empac') || cleanQuery.includes('papa') || cleanQuery.includes('autoriza')) &&
+        item.id === 'ifa6-fv-02-04-trabajo-infantil'
+      ) {
+        score += 70;
+        reasons.push('Coincidencia temática prioritaria: Prohibición de Trabajo Infantil y Edad Mínima (FV-GFS 20)');
+      }
+
+      // D) Small banana producer area (only if asking specifically about area, size, or small producer)
+      if (
+        (cleanQuery.includes('superficie') || cleanQuery.includes('hectarea') || cleanQuery.includes('pequeno productor') || cleanQuery.includes('monocultivo')) &&
+        cleanQuery.includes('banano') &&
+        item.id === 'org-ec-pequeno-productor-banano'
+      ) {
+        score += 50;
+        reasons.push('Coincidencia temática prioritaria: Superficie Pequeño Productor de Banano (Anexo XI)');
+      }
+
+      // 4. Common false premise match
       for (const fp of item.commonFalsePremises) {
         const cleanFp = fp.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         const fpTokens = cleanFp.split(/\W+/).filter(t => t.length > 3);
@@ -83,7 +134,7 @@ export class InternalKbEngine {
         }
       }
 
-      // 4. Content and Title token overlap
+      // 5. Content and Title token overlap
       const searchableBody = `${item.title} ${item.chapter} ${item.officialText} ${item.simpleExplanation}`
         .toLowerCase()
         .normalize('NFD')

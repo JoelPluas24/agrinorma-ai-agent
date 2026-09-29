@@ -70,16 +70,16 @@ export class AlertEngine {
 
     // Rule 3: Child labor under 15 with parent consent in GlobalGAP IFA v6
     if (
-      (cleanQuery.includes('14') || cleanQuery.includes('menor') || cleanQuery.includes('infantil')) &&
-      (cleanQuery.includes('permiso') || cleanQuery.includes('padres') || cleanQuery.includes('vacaciones') || cleanQuery.includes('familiar'))
+      (cleanQuery.includes('14') || cleanQuery.includes('menor') || cleanQuery.includes('infantil') || cleanQuery.includes('joven')) &&
+      (cleanQuery.includes('permiso') || cleanQuery.includes('padres') || cleanQuery.includes('papa') || cleanQuery.includes('mama') || cleanQuery.includes('autorizacion') || cleanQuery.includes('vacaciones') || cleanQuery.includes('familiar') || cleanQuery.includes('trabajar') || cleanQuery.includes('empacando'))
     ) {
       falsePremises.push({
         detected: true,
-        premiseText: 'Premisa errónea: "Es legal contratar a menores de 14 o 15 años en tareas agrícolas si cuentan con consentimiento firmado de los padres o si es periodo vacacional."',
-        correction: 'GlobalG.A.P. IFA v6 (FV 02.04.01) y el Convenio 138 de la OIT establecen que la edad mínima de admisión al empleo en explotaciones comerciales es de 15 años cumplidos. Una carta o permiso parental no tiene validez para eximir el cumplimiento de la norma.',
+        premiseText: 'Premisa errónea: "Es legal que un joven de 14 años trabaje en labores de campo o empaque si cuenta con permiso o autorización firmada de sus padres."',
+        correction: 'GlobalG.A.P. IFA v6 (FV-GFS 20) y el Convenio 138 de la OIT establecen que la edad mínima de admisión al empleo en explotaciones comerciales es de 15 años cumplidos. Una carta, permiso o autorización de los padres NO exonera a la empresa de la prohibición de trabajo infantil.',
         riskDescription: 'No Conformidad Mayor que paraliza el proceso de auditoría y genera reporte inmediato al Comité de Integridad de GlobalG.A.P. y Ministerio del Trabajo.',
         severity: 'CRITICA',
-        affectedNormCode: 'FV 02.04.01'
+        affectedNormCode: 'FV-GFS 20'
       });
 
       alerts.push({
@@ -89,6 +89,31 @@ export class AlertEngine {
         title: '🚨 ALERTA CRÍTICA: Detección de Trabajo Infantil No Conforme (IFA v6)',
         description: 'La autorización de los progenitores no convalida la vinculación laboral de menores de 15 años en actividades de cosecha o empaque agrícola comercial.',
         recommendation: 'No contratar bajo ninguna modalidad a menores de 15 años. Para jóvenes entre 15 y 17 años, verificar contrato legal de aprendizaje juvenil sin labores peligrosas ni nocturnas.',
+        timestamp: new Date().toLocaleTimeString('es-EC')
+      });
+    }
+
+    // Rule 5: PPE / Fumigation clothing entering packhouse
+    if (
+      (cleanQuery.includes('ropa') || cleanQuery.includes('epi') || cleanQuery.includes('overol') || cleanQuery.includes('fumiga')) &&
+      (cleanQuery.includes('empacadora') || cleanQuery.includes('entrar') || cleanQuery.includes('poscosecha') || cleanQuery.includes('manipulacion'))
+    ) {
+      falsePremises.push({
+        detected: true,
+        premiseText: 'Premisa errónea: "Los trabajadores pueden entrar a la empacadora de fruta con la vestimenta o ropa de fumigación si ya se secó."',
+        correction: 'GlobalG.A.P. IFA v6 (criterio FV-GFS 20.03.02) prohíbe terminantemente ingresar con ropa o equipos de protección individual (EPI) utilizados en aplicaciones de plaguicidas a las áreas de empaque o poscosecha. La ropa protectora debe lavarse y guardarse en un lugar separado y exclusivo para evitar contaminación cruzada de la fruta.',
+        riskDescription: 'No Conformidad Mayor inmediata por riesgo inminente de contaminación química cruzada directa sobre el producto fresco cosechado.',
+        severity: 'MAYOR',
+        affectedNormCode: 'FV-GFS 20.03.02'
+      });
+
+      alerts.push({
+        id: `alert-${Date.now()}-epi-empacadora`,
+        type: 'PREMISA_FALSA',
+        severity: 'MAYOR',
+        title: '⚠️ ALERTA DE BIOSEGURIDAD: Prohibición de Ropa de Fumigación en Empacadora',
+        description: 'La ropa de aplicación fitosanitaria nunca debe ingresar a áreas de empaque, almacenamiento o poscosecha, sin importar si está seca.',
+        recommendation: 'Exigir cambio completo de vestimenta antes de que el personal ingrese a la empacadora. Disponer de casilleros y áreas de lavado independientes.',
         timestamp: new Date().toLocaleTimeString('es-EC')
       });
     }

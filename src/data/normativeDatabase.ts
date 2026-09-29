@@ -22,9 +22,9 @@ export const NORMATIVE_DATABASE: NormativeItem[] = [
       'No existe límite de hectáreas para banano si el productor pertenece a una cooperativa.'
     ],
     keywords: [
-      'superficie maxima', 'pequeno productor', 'banano', 'hectareas', '10 hectareas', '20 hectareas',
-      'monocultivo', 'agroforestal', 'sistemas agroforestales', 'agrocalidad', 'tamano', 'extension',
-      'musaceas', 'anexo xi', 'tabla 1', 'certificacion grupal', 'sic', 'densidad'
+      'superficie maxima', 'pequeno productor', 'pequeno productor banano', 'hectareas banano', '10 hectareas', '20 hectareas',
+      'monocultivo', 'agroforestal', 'sistemas agroforestales', 'tamano pequeno productor', 'extension maxima',
+      'musaceas', 'anexo xi', 'tabla 1', 'certificacion grupal', 'sic', 'densidad 600'
     ],
     officialSourceUrl: 'https://www.agrocalidad.gob.ec/organicos/',
     lastUpdated: '2026'
@@ -113,7 +113,11 @@ export const NORMATIVE_DATABASE: NormativeItem[] = [
       'Durante el periodo de conversión de 36 meses ya se puede usar el sello oficial de Agrocalidad.',
       'Se puede alternar entre manejo convencional y orgánico en la misma parcela durante la transición.'
     ],
-    keywords: ['conversion', 'transicion', '36 meses', '24 meses', 'perennes', 'anuales', 'cacao', 'periodo', 'articulo 17'],
+    keywords: [
+      'conversion', 'transicion', 'meses de transicion', 'periodo de transicion', 'periodo de conversion',
+      'cuantos meses', '36 meses', '24 meses', 'pase a ser organica', 'pasar a organica', 'convencional a organica',
+      'finca de banano convencional', 'tiempo de transicion', 'perennes', 'anuales', 'cacao', 'periodo', 'articulo 17'
+    ],
     officialSourceUrl: 'https://www.agrocalidad.gob.ec/organicos/',
     lastUpdated: '2026'
   },
@@ -285,7 +289,10 @@ export const NORMATIVE_DATABASE: NormativeItem[] = [
       'Un joven de 16 años puede aplicar productos fitosanitarios si tiene capacitación.',
       'El trabajo infantil solo está prohibido si el menor trabaja más de 4 horas diarias.'
     ],
-    keywords: ['trabajo infantil', 'menores de 15', 'edad minima', 'contratacion', 'permiso padres', '14 anos', 'fv-gfs 20', 'trabajadores jovenes'],
+    keywords: [
+      'trabajo infantil', 'menores de 15', 'edad minima', 'contratacion', 'permiso padres', '14 anos', 'fv-gfs 20', 'trabajadores jovenes',
+      'joven de 14', 'joven de 14 anos', 'papa firma', 'autorizacion', 'permiso del papa', 'firma una autorizacion', 'empacando banano', 'trabajar empacando'
+    ],
     officialSourceUrl: 'https://globalgap.org/',
     lastUpdated: '2026'
   },
@@ -324,7 +331,10 @@ export const NORMATIVE_DATABASE: NormativeItem[] = [
       'Los visitantes no necesitan EPI si solo están de paso.',
       'Se puede lavar la ropa de protección junto con la ropa personal.'
     ],
-    keywords: ['epi', 'equipo de proteccion', 'mascarilla', 'guantes', 'gafas', 'proteccion personal', 'fv-gfs 20.03'],
+    keywords: [
+      'epi', 'equipo de proteccion', 'mascarilla', 'guantes', 'gafas', 'proteccion personal', 'fv-gfs 20.03',
+      'ropa de fumigacion', 'ropa', 'vestimenta', 'empacadora', 'entrar a la empacadora', 'ropa contaminada', 'fumigacion', 'ropa de aplicacion'
+    ],
     officialSourceUrl: 'https://globalgap.org/',
     lastUpdated: '2026'
   },

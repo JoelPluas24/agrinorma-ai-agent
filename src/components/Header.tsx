@@ -84,14 +84,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenNormExplorer, onOpenManual
             <span>Matriz Normativa</span>
           </button>
 
-          <button
-            onClick={onOpenManual}
-            className="btn-caae-primary text-xs sm:text-sm py-2 px-3.5"
-            title="Ver Manual de Funciones y Declaración de Originalidad Firmada"
-          >
-            <BookOpen size={16} />
-            <span>Manual & Originalidad</span>
-          </button>
+          
         </div>
 
       </div>
