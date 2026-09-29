@@ -69,6 +69,23 @@ export class AgentWorkflow {
       !cleanQuery.includes('ecuador') && 
       !cleanQuery.includes('ecuatoriana');
 
+    // Check if query is completely outside the agricultural audit domain (Guardrails de Gobernanza)
+    const AUDIT_DOMAIN_TOKENS = [
+      'norma', 'organico', 'organica', 'ecolog', 'agrocalidad', 'globalgap', 'ifa', 'coc',
+      'cadena', 'custodia', 'banano', 'cacao', 'cafe', 'cultivo', 'finca', 'planta', 'fruta', 'hortaliza',
+      'suelo', 'agua', 'riego', 'fertilizante', 'abono', 'quimico', 'plaguicida', 'pesticida', 'herbicida',
+      'fungicida', 'glifosato', 'azufre', 'urea', 'trazabilidad', 'lote', 'segregacion', 'empaque', 'empacadora',
+      'cosecha', 'postcosecha', 'poscosecha', 'higiene', 'trabajador', 'trabajadores', 'operario', 'menor', 'infantil',
+      '14', '15', 'epi', 'epp', 'mascarilla', 'guantes', 'botiquin', 'emergencia', 'calibracion', 'auditoria',
+      'auditor', 'oc', 'certificacion', 'certificado', 'registro', 'sic', 'conversion', 'transicion', 'meses',
+      'hectarea', 'hectareas', 'superficie', 'monocultivo', 'agroforestal', 'inodoro', 'bano', 'lavamanos',
+      'ogm', 'transgenico', 'proveedor', 'cliente', 'compra', 'venta', 'factura', 'ggn', 'ue', 'union europea',
+      'insumo', 'insumos', 'prohibicion', 'autorizacion', 'permiso', 'papa', 'padre', 'fumiga', 'fumigacion',
+      'desinfeccion', 'propagacion', 'vivero', 'acreditacion', '17065', 'campo', 'productor', 'agricola'
+    ];
+
+    const isOutOfScope = !AUDIT_DOMAIN_TOKENS.some(token => cleanQuery.includes(token));
+
     // Step 3: Tool 1 - Internal Knowledge Base Search
     updateStep({
       stepNumber: 3,
@@ -82,7 +99,32 @@ export class AgentWorkflow {
     let kbResults = InternalKbEngine.search(query, selectedNormScope);
     let matchedItem: NormativeItem;
 
-    if (isEuQuery) {
+    if (isOutOfScope) {
+      updateStep({
+        stepNumber: 3,
+        name: 'Herramienta 1: Búsqueda en Base Interna',
+        description: 'Valla de Contención (Guardrail): La consulta no contiene entidades agroalimentarias ni de auditoría.',
+        status: 'warning',
+        toolUsed: 'BASE_CONOCIMIENTO',
+        outputSnippet: 'Consulta fuera del alcance acreditado de auditoría (ISO/IEC 17065).'
+      });
+      matchedItem = {
+        id: 'fuera-de-alcance',
+        norm: 'GLOBALGAP_IFA_V6',
+        normName: 'Organismo de Certificación CAAE — Alcance Acreditado ISO/IEC 17065',
+        code: 'Guardrails de Gobernanza y Alcance Acreditado',
+        chapter: 'Políticas de Calidad y Restricción de Dominio Profesional',
+        title: 'Consulta Fuera del Alcance Acreditado de Auditoría',
+        complianceLevel: 'RECOMENDACION',
+        officialText: 'Conforme a los procedimientos de calidad del Organismo de Certificación CAAE y el marco de gobernanza ISO/IEC 17065, el asistente técnico AgriNorma AI está formalmente restringido a la interpretación de GlobalG.A.P. IFA v6, Cadena de Custodia CoC v6 y la Norma Orgánica Ecuatoriana (AGROCALIDAD Res. 034). Se declinan consultas que no correspondan al ámbito agroalimentario.',
+        simpleExplanation: 'Esta consulta se encuentra fuera del alcance técnico de AgriNorma AI. Como asistente de auditoría especializado para CAAE, el sistema está programado exclusivamente para responder preguntas sobre buenas prácticas agrícolas, inocuidad alimentaria, normas orgánicas, trazabilidad y requisitos de certificación de fincas o empacadoras. Por favor, formule una consulta relacionada con el sector agropecuario o los criterios normativos auditados.',
+        auditContextExample: 'Un usuario formula una consulta sobre un tema ajeno a la auditoría agrícola. El agente, en estricto apego a la Sección 7 del Manual de Uso y los estándares de imparcialidad de la norma ISO/IEC 17065, declina la consulta y reorienta al usuario hacia el catálogo de criterios normativos oficiales.',
+        commonFalsePremises: ['El agente de auditoría puede emitir dictámenes sobre temas ajenos a la certificación agroalimentaria.'],
+        keywords: ['fuera de alcance'],
+        officialSourceUrl: 'https://www.caae.es/',
+        lastUpdated: '2026'
+      };
+    } else if (isEuQuery) {
       updateStep({
         stepNumber: 3,
         name: 'Herramienta 1: Búsqueda en Base Interna',
@@ -153,6 +195,17 @@ export class AgentWorkflow {
     await new Promise(r => setTimeout(r, 300));
 
     const { falsePremises, alerts } = AlertEngine.evaluateQuery(query, matchedItem);
+    if (isOutOfScope) {
+      alerts.push({
+        id: `alert-${Date.now()}-out-of-scope`,
+        type: 'INCONSISTENCIA_NORMATIVA',
+        severity: 'MAYOR',
+        title: '⚠️ CONSULTA FUERA DEL ALCANCE ACREDITADO (ISO/IEC 17065)',
+        description: 'La consulta no contiene términos ni materias vinculadas a la certificación de fincas, inocuidad alimentaria, poscosecha o normativa orgánica.',
+        recommendation: 'Formule una consulta técnica sobre cultivos, insumos permitidos, trazabilidad, higiene, salud laboral o requisitos de auditoría.',
+        timestamp: new Date().toLocaleTimeString('es-EC')
+      });
+    }
     const hasFalsePremise = falsePremises.length > 0;
 
     updateStep({

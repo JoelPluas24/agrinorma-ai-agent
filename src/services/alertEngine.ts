@@ -143,8 +143,8 @@ export class AlertEngine {
       });
     }
 
-    // If no specific false premise was detected, generate standard compliance advisory
-    if (falsePremises.length === 0) {
+    // If no specific false premise was detected, generate standard compliance advisory (unless out-of-scope)
+    if (falsePremises.length === 0 && matchedNorm.id !== 'fuera-de-alcance') {
       alerts.push({
         id: `alert-${Date.now()}-info`,
         type: 'INCONSISTENCIA_NORMATIVA',

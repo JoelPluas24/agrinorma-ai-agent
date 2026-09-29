@@ -15,7 +15,8 @@ import {
   CheckCircle,
   AlertTriangle,
   FileCheck2,
-  Building2
+  Building2,
+  ShieldAlert
 } from 'lucide-react';
 
 interface ResponseCardProps {
@@ -25,6 +26,63 @@ interface ResponseCardProps {
 export const ResponseCard: React.FC<ResponseCardProps> = ({ response }) => {
   const [copied, setCopied] = React.useState(false);
   const primary = response.primaryCitation;
+
+  const isOutOfScope = 
+    primary.code.toLowerCase().includes('guardrail') || 
+    primary.title.toLowerCase().includes('fuera del alcance') ||
+    response.alerts.some(a => a.title.includes('FUERA DEL ALCANCE'));
+
+  // Dedicated Scope Restriction Card (Guardrail) for off-topic queries
+  if (isOutOfScope) {
+    return (
+      <div className="bg-white border-2 border-amber-300 rounded-xl p-6 sm:p-7 mb-8 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-700 shrink-0 shadow-2xs">
+            <ShieldAlert size={28} />
+          </div>
+
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="text-2xs font-black px-2.5 py-0.5 rounded bg-amber-200 border border-amber-400 text-amber-950 uppercase tracking-wider">
+                Valla de Contención Ética (Guardrail)
+              </span>
+              <span className="text-2xs font-semibold text-slate-500">
+                Acreditación ISO/IEC 17065 • Organismo CAAE
+              </span>
+            </div>
+
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-2">
+              Consulta Fuera del Alcance Acreditado de Auditoría
+            </h2>
+
+            <p className="text-xs sm:text-sm text-slate-800 leading-relaxed bg-amber-50/80 p-4 rounded-lg border border-amber-200/90 font-medium mb-5 shadow-2xs">
+              {response.simpleExplanation}
+            </p>
+
+            <div className="border-t border-slate-200 pt-4">
+              <h4 className="text-2xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">
+                Ámbito de Especialidad Normativa de este Agente:
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs">
+                  <span className="font-bold text-[#006837] block mb-0.5">🌱 GlobalG.A.P. IFA v6</span>
+                  <span className="text-slate-600 text-2xs leading-relaxed block">Frutas, hortalizas, inocuidad alimentaria, higiene, fitosanitarios y salud laboral.</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs">
+                  <span className="font-bold text-indigo-700 block mb-0.5">📦 Cadena de Custodia (CoC v6)</span>
+                  <span className="text-slate-600 text-2xs leading-relaxed block">Trazabilidad comercial, métodos de segregación física y balance de masas.</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs">
+                  <span className="font-bold text-emerald-800 block mb-0.5">🍃 Norma Orgánica Ecuador</span>
+                  <span className="text-slate-600 text-2xs leading-relaxed block">AGROCALIDAD Res. 034, Instructivo NOE, insumos permitidos y certificación grupal SIC.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const handleCopyText = () => {
     const fullText = `DICTAMEN DE AUDITORÍA — AGRINORMA AI
