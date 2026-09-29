@@ -63,8 +63,11 @@ export class AgentWorkflow {
       outputSnippet: `Consulta procesada: "${query.substring(0, 70)}..."`
     });
 
-    // Detect if query is about the European Union (Question 3)
-    const isEuQuery = cleanQuery.includes('union europea') || cleanQuery.includes('ue') || (cleanQuery.includes('europa') && cleanQuery.includes('organica'));
+    // Detect if query is specifically about the European Union (Question 3)
+    const isEuQuery = 
+      (cleanQuery.includes('union europea') || /\b(ue|europa)\b/.test(cleanQuery)) &&
+      !cleanQuery.includes('ecuador') && 
+      !cleanQuery.includes('ecuatoriana');
 
     // Step 3: Tool 1 - Internal Knowledge Base Search
     updateStep({

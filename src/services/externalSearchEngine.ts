@@ -11,7 +11,11 @@ export class ExternalSearchEngine {
     const results: ExternalSourceResult[] = [];
 
     // Unión Europea - pequeño productor de banano
-    if (cleanQuery.includes('union europea') || cleanQuery.includes('ue') || cleanQuery.includes('europa')) {
+    if (
+      (cleanQuery.includes('union europea') || /\b(ue|europa)\b/.test(cleanQuery)) &&
+      !cleanQuery.includes('ecuador') &&
+      !cleanQuery.includes('ecuatoriana')
+    ) {
       if (EXTERNAL_KNOWLEDGE_SNIPPETS.ue) {
         results.push(...EXTERNAL_KNOWLEDGE_SNIPPETS.ue);
       }

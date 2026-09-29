@@ -50,6 +50,12 @@ export const App: React.FC = () => {
 
       setResponse(result);
       setActiveTool(undefined);
+      setTimeout(() => {
+        const el = document.getElementById('dictamen-response');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
     } catch (error) {
       console.error('Error executing query:', error);
     } finally {
@@ -80,7 +86,7 @@ export const App: React.FC = () => {
 
         {/* 5. Main Structured Audit Response */}
         {response && (
-          <div>
+          <div id="dictamen-response" className="scroll-mt-6">
             <div className="flex items-center justify-between mb-2.5 px-1">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                 <ShieldCheck size={16} className="text-[#006837]" />
