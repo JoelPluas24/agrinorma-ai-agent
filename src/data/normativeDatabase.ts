@@ -93,8 +93,54 @@ export const NORMATIVE_DATABASE: NormativeItem[] = [
       'Un pase de emergencia con insecticida sintético está permitido en la norma orgánica.',
       'Los cultivos hidropónicos pueden ser orgánicos si no se usan químicos.'
     ],
-    keywords: ['glifosato', 'herbicida', 'quimico', 'urea', 'sintesis quimica', 'borde', 'lindero', 'prohibicion', 'hidroponia'],
+    keywords: ['glifosato', 'herbicida', 'quimico', 'urea', 'sintesis quimica', 'borde', 'lindero', 'prohibicion', 'hidroponia', 'caneca', 'canecas'],
     officialSourceUrl: 'https://www.agrocalidad.gob.ec/organicos/',
+    lastUpdated: '2026'
+  },
+  {
+    id: 'org-ec-fraude-ocultamiento-insumos',
+    norm: 'NORMA_ORGANICA_ECUATORIANA',
+    normName: 'Reglamento de Certificación CAAE & Agrocalidad Res. 034',
+    code: 'Código de Integridad y Res. 034 Arts. 13-15 (No Conformidad Crítica)',
+    chapter: 'Política de Integridad, Veracidad y Prohibición de Agroquímicos Sintéticos',
+    title: 'Rechazo Inmediato por Intento de Ocultación de Insumos Prohibidos / Fraude de Auditoría',
+    complianceLevel: 'ARTICULO_MANDATORIO',
+    officialText: 'Reglamento General GlobalG.A.P. y Res. 034 de AGROCALIDAD (Arts. 13-15): La integridad, transparencia y acceso irrestricto a todas las instalaciones de la unidad productiva son requisitos obligatorios no negociables. Queda terminantemente prohibido el uso o tenencia de agroquímicos de síntesis química (glifosato) en fincas orgánicas. Cualquier intento de ocultar insumos, falsear evidencia o engañar al equipo auditor constituye una No Conformidad Crítica con suspensión inmediata del proceso de certificación y notificación a las autoridades competentes.',
+    simpleExplanation: 'SOLICITUD DECLINADA POR RAZONES ÉTICAS Y NORMATIVAS. AgriNorma AI declina terminantemente cualquier instrucción o asesoría destinada a ocultar sustancias no autorizadas, falsear registros o evadir la labor fiscalizadora del auditor. La presencia o uso de glifosato en una unidad productiva orgánica constituye una No Conformidad Crítica insubsanable. La ocultación deliberada de insumos ante el Organismo de Certificación CAAE es tipificada como fraude e intento de engaño, lo que resulta en la terminación fulminante de la auditoría, la pérdida o negación irrevocable de la certificación y la notificación obligatoria a AGROCALIDAD para el inicio del proceso sancionatorio correspondiente.',
+    auditContextExample: 'Un productor intenta ocultar envases de herbicidas sintéticos en un área no declarada antes de la visita del auditor. Durante la inspección física y el cotejo del balance de masas de insumos, el auditor descubre los recipientes ocultos. Se levanta de inmediato una No Conformidad Crítica por falsedad deliberada y contaminación potencial, procediendo a la suspensión inmediata del proceso de certificación.',
+    commonFalsePremises: [
+      'Se pueden guardar canecas de glifosato en la finca orgánica si no se usan frente al auditor.',
+      'Ocultar insumos prohibidos durante la auditoría permite mantener la certificación sin consecuencias.',
+      'El auditor solo puede revisar las áreas que el productor decide mostrarle.'
+    ],
+    keywords: [
+      'ocultar canecas', 'ocultar glifosato', 'esconder quimicos', 'esconder agroquimicos', 'canecas de glifosato',
+      'antes de que llegue el auditor', 'enganar al auditor', 'fraude', 'evasion', 'camuflar', 'falsear'
+    ],
+    officialSourceUrl: 'https://www.agrocalidad.gob.ec/organicos/',
+    lastUpdated: '2026'
+  },
+  {
+    id: 'caae-gobernanza-emision-certificados',
+    norm: 'GLOBALGAP_IFA_V6',
+    normName: 'Organismo de Certificación CAAE — Gobernanza ISO/IEC 17065',
+    code: 'ISO/IEC 17065:2012 Cláusula 7.6 / Reglamento General GlobalG.A.P.',
+    chapter: 'Gobernanza Institucional: Proceso de Decisión y Emisión de Certificados',
+    title: 'Potestad Exclusiva e Indelegable del Comité de Certificación',
+    complianceLevel: 'ARTICULO_MANDATORIO',
+    officialText: 'Conforme al estándar internacional ISO/IEC 17065:2012 (Cláusula 7.6) y el Reglamento General de GlobalG.A.P., la decisión sobre la concesión, mantenimiento, ampliación o renovación de un certificado corresponde con exclusividad e independencia técnica al Comité de Decisión de Certificación de CAAE. Ningún asistente virtual, agente de inteligencia artificial o auditor individual tiene la potestad legal de emitir certificados directamente sin el previo proceso formal de auditoría y revisión colegiada.',
+    simpleExplanation: 'SOLICITUD NO PROCEDENTE. AgriNorma AI es un asistente técnico de consulta y apoyo en auditoría, pero NO tiene la facultad ni atribución legal para emitir certificados. Conforme al estándar internacional ISO/IEC 17065 que rige a CAAE, la emisión de un certificado GlobalG.A.P. o de Producción Orgánica es potestad exclusiva e indelegable del Comité de Certificación de CAAE, luego de completar la auditoría in situ, subsanar todas las No Conformidades y cumplir el ciclo formal de revisión técnica. Ningún certificado puede emitirse de forma automática ni inmediata.',
+    auditContextExample: 'Un operador solicita la emisión inmediata de su certificado GlobalG.A.P. para concretar una exportación al día siguiente. El Organismo de Certificación informa que la emisión de certificados no puede acelerarse de forma arbitraria y requiere el dictamen colegiado favorable del Comité de Certificación tras evaluar el expediente de auditoría.',
+    commonFalsePremises: [
+      'Un agente de IA o software puede emitir certificados oficiales de exportación.',
+      'Se puede emitir un certificado de urgencia sin revisión del Comité de Certificación.',
+      'El auditor de campo puede entregar el certificado firmado al terminar la visita.'
+    ],
+    keywords: [
+      'emite mi certificado', 'emite certificado', 'emitir certificado', 'dame mi certificado',
+      'exportar manana', 'certificado globalgap', 'certificado ya', 'certificame'
+    ],
+    officialSourceUrl: 'https://www.caae.es/',
     lastUpdated: '2026'
   },
   {

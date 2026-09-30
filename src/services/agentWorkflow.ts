@@ -63,28 +63,121 @@ export class AgentWorkflow {
       outputSnippet: `Consulta procesada: "${query.substring(0, 70)}..."`
     });
 
-    // Detect if query is specifically about the European Union (Question 3)
+    // 1. Detection of Fraud / Evasion (Critical Ethics & Non-Conformity)
+    const isFraudOrEvasion = 
+      (
+        cleanQuery.includes('ocultar') ||
+        cleanQuery.includes('esconder') ||
+        cleanQuery.includes('camuflar') ||
+        cleanQuery.includes('tapar') ||
+        cleanQuery.includes('falsear') ||
+        cleanQuery.includes('adulterar') ||
+        cleanQuery.includes('borrar registro') ||
+        cleanQuery.includes('enganar') ||
+        cleanQuery.includes('trampa') ||
+        cleanQuery.includes('soborn') ||
+        cleanQuery.includes('coima') ||
+        cleanQuery.includes('evadir')
+      ) &&
+      (
+        cleanQuery.includes('auditor') ||
+        cleanQuery.includes('auditoria') ||
+        cleanQuery.includes('inspeccion') ||
+        cleanQuery.includes('llegue') ||
+        cleanQuery.includes('glifosato') ||
+        cleanQuery.includes('quimico') ||
+        cleanQuery.includes('agroquimico') ||
+        cleanQuery.includes('pesticida') ||
+        cleanQuery.includes('herbicida') ||
+        cleanQuery.includes('caneca') ||
+        cleanQuery.includes('canecas') ||
+        cleanQuery.includes('registro') ||
+        cleanQuery.includes('cuaderno') ||
+        cleanQuery.includes('finca') ||
+        cleanQuery.includes('certificacion')
+      );
+
+    // 2. Detection of Direct Certification Request / Extralimitation
+    const isDirectCertification = 
+      (
+        cleanQuery.includes('emite') ||
+        cleanQuery.includes('emitir') ||
+        cleanQuery.includes('emitas') ||
+        cleanQuery.includes('dame') ||
+        cleanQuery.includes('entregame') ||
+        cleanQuery.includes('generame') ||
+        cleanQuery.includes('apruebame') ||
+        cleanQuery.includes('certificame')
+      ) &&
+      (
+        cleanQuery.includes('certificado') ||
+        cleanQuery.includes('certificacion') ||
+        cleanQuery.includes('exportar manana') ||
+        cleanQuery.includes('globalgap') ||
+        cleanQuery.includes('agrocalidad')
+      );
+
+    // 3. Detect if query is specifically about the European Union (Question 3)
     const isEuQuery = 
+      !isFraudOrEvasion && !isDirectCertification &&
       (cleanQuery.includes('union europea') || /\b(ue|europa)\b/.test(cleanQuery)) &&
       !cleanQuery.includes('ecuador') && 
       !cleanQuery.includes('ecuatoriana');
 
-    // Check if query is completely outside the agricultural audit domain (Guardrails de Gobernanza)
-    const AUDIT_DOMAIN_TOKENS = [
-      'norma', 'organico', 'organica', 'ecolog', 'agrocalidad', 'globalgap', 'ifa', 'coc',
-      'cadena', 'custodia', 'banano', 'cacao', 'cafe', 'cultivo', 'finca', 'planta', 'fruta', 'hortaliza',
-      'suelo', 'agua', 'riego', 'fertilizante', 'abono', 'quimico', 'plaguicida', 'pesticida', 'herbicida',
-      'fungicida', 'glifosato', 'azufre', 'urea', 'trazabilidad', 'lote', 'segregacion', 'empaque', 'empacadora',
-      'cosecha', 'postcosecha', 'poscosecha', 'higiene', 'trabajador', 'trabajadores', 'operario', 'menor', 'infantil',
-      '14', '15', 'epi', 'epp', 'mascarilla', 'guantes', 'botiquin', 'emergencia', 'calibracion', 'auditoria',
-      'auditor', 'oc', 'certificacion', 'certificado', 'registro', 'sic', 'conversion', 'transicion', 'meses',
-      'hectarea', 'hectareas', 'superficie', 'monocultivo', 'agroforestal', 'inodoro', 'bano', 'lavamanos',
-      'ogm', 'transgenico', 'proveedor', 'cliente', 'compra', 'venta', 'factura', 'ggn', 'ue', 'union europea',
-      'insumo', 'insumos', 'prohibicion', 'autorizacion', 'permiso', 'papa', 'padre', 'fumiga', 'fumigacion',
-      'desinfeccion', 'propagacion', 'vivero', 'acreditacion', '17065', 'campo', 'productor', 'agricola'
+    // 4. Check if query is completely outside the agricultural audit domain (Guardrails de Gobernanza)
+    // IMPORTANT: Only use specific multi-character agricultural/audit tokens to avoid false positives
+    // Short ambiguous tokens (e.g. 'oc', 'ue', 'epi', 'sic') are intentionally excluded to prevent
+    // innocent queries like "¿Qué día es hoy?" from accidentally matching.
+    const AUDIT_DOMAIN_TOKENS_LONG: string[] = [
+      // Normativas y organismos
+      'norma', 'organico', 'organica', 'ecolog', 'agrocalidad', 'globalgap', 'certificacion',
+      'certificado', 'acreditacion', 'auditoria', 'auditor', 'iso17065', '17065',
+      // Cadena de custodia / trazabilidad (incluye consultas tipo "CoC")
+      'cadena custodia', 'trazabilidad', 'segregacion', 'cadena de custodia', 'coc v6',
+      // NOTA: 'coc' solo está en SHORT_EXACT para word-boundary matching
+      // Registros comerciales (Pregunta 5: CoC compras/ventas)
+      'compra', 'venta', 'ventas', 'registro', 'registros', 'factura',
+      // Cultivos y productos
+      'banano', 'cacao', 'cafe', 'cultivo', 'finca', 'hortaliza', 'monocultivo', 'agroforestal', 'vivero',
+      'cosecha', 'postcosecha', 'poscosecha', 'empacadora', 'empaque', 'propagacion',
+      // Manipulación y postcosecha de producto (Pregunta 8)
+      'manipulacion', 'almacenamiento', 'tratamiento quimico', 'producto cosechado',
+      // Insumos y agroquimicos
+      'fertilizante', 'plaguicida', 'pesticida', 'herbicida', 'fungicida', 'glifosato', 'agroquimico',
+      'desinfeccion', 'fumigacion', 'fumiga',
+      // Suelos y agua
+      'suelo', 'riego', 'hectarea', 'superficie', 'campo agricola', 'unidad productiva',
+      // Personal y salud laboral
+      'trabajador', 'operario', 'trabajo infantil', 'menores de edad', 'mascarilla', 'guantes',
+      'botiquin', 'calibracion', 'equipo proteccion', 'epi agricola', 'epp agricola',
+      // Administracion agricola
+      'registro fitosanitario', 'registro de insumos', 'cuaderno de campo', 'conversion organica',
+      'transicion organica', 'meses transicion',
+      // Infraestructura
+      'inodoro agricola', 'lavamanos', 'sala de empaque', 'cuarto frio',
+      // Comercio certificado
+      'productor organico', 'productor certificado', 'agricola', 'produccion organica',
+      // Ambito de operador/productor
+      'operador', 'tratamiento', 'insumo',
     ];
 
-    const isOutOfScope = !AUDIT_DOMAIN_TOKENS.some(token => cleanQuery.includes(token));
+    // Also check for exact-word short agricultural tokens using word-boundary matching
+    // NOTE: 'planta' is here but also matched via substring in LONG (so 'plantas' also matches)
+    const AUDIT_DOMAIN_TOKENS_SHORT_EXACT: string[] = [
+      'ifa', 'coc', 'ogm', 'ggn', 'urea', 'azufre', 'abono', 'lote', 'fruta', 'agua'
+    ];
+
+    // 'planta'/'plantas' - use includes() (not word-boundary) so plurals also match
+    const hasPlantToken = cleanQuery.includes('planta');
+
+    const hasLongToken = AUDIT_DOMAIN_TOKENS_LONG.some(token => cleanQuery.includes(token));
+    // Word-boundary check for short tokens: the token must appear as standalone word
+    const hasShortToken = AUDIT_DOMAIN_TOKENS_SHORT_EXACT.some(token => {
+      const regex = new RegExp(`\\b${token}\\b`);
+      return regex.test(cleanQuery);
+    });
+
+    const isOutOfScope = !isFraudOrEvasion && !isDirectCertification && !hasLongToken && !hasShortToken && !hasPlantToken;
 
     // Step 3: Tool 1 - Internal Knowledge Base Search
     updateStep({
@@ -99,7 +192,63 @@ export class AgentWorkflow {
     let kbResults = InternalKbEngine.search(query, selectedNormScope);
     let matchedItem: NormativeItem;
 
-    if (isOutOfScope) {
+    if (isFraudOrEvasion) {
+      updateStep({
+        stepNumber: 3,
+        name: 'Herramienta 1: Búsqueda en Base Interna',
+        description: '🚨 ALERTA CRÍTICA DE INTEGRIDAD: Se detecta solicitud para ocultar sustancias prohibidas o evadir la auditoría. Activando protocolo anti-fraude bajo AGROCALIDAD Res. 034 y GlobalG.A.P.',
+        status: 'warning',
+        toolUsed: 'BASE_CONOCIMIENTO',
+        outputSnippet: 'Rechazo ético por infracción crítica: Ocultación de insumos prohibidos (Glifosato).'
+      });
+      matchedItem = InternalKbEngine.getAllItems().find(i => i.id === 'org-ec-fraude-ocultamiento-insumos') || {
+        id: 'org-ec-fraude-ocultamiento-insumos',
+        norm: 'NORMA_ORGANICA_ECUATORIANA',
+        normName: 'Reglamento de Certificación CAAE & Agrocalidad Res. 034',
+        code: 'Código de Integridad y Res. 034 Arts. 13-15 (No Conformidad Crítica)',
+        chapter: 'Política de Integridad, Veracidad y Prohibición de Agroquímicos Sintéticos',
+        title: 'Rechazo Inmediato por Intento de Ocultación de Insumos Prohibidos / Fraude de Auditoría',
+        complianceLevel: 'ARTICULO_MANDATORIO',
+        officialText: 'Reglamento General GlobalG.A.P. y Res. 034 de AGROCALIDAD (Arts. 13-15): La integridad, transparencia y acceso irrestricto a todas las instalaciones de la unidad productiva son requisitos obligatorios no negociables. Queda terminantemente prohibido el uso o tenencia de agroquímicos de síntesis química (glifosato) en fincas orgánicas. Cualquier intento de ocultar insumos, falsear evidencia o engañar al equipo auditor constituye una No Conformidad Crítica con suspensión inmediata del proceso de certificación y notificación a las autoridades competentes.',
+        simpleExplanation: 'SOLICITUD DECLINADA POR RAZONES ÉTICAS Y NORMATIVAS. AgriNorma AI declina terminantemente cualquier instrucción o asesoría destinada a ocultar sustancias no autorizadas, falsear registros o evadir la labor fiscalizadora del auditor. La presencia o uso de glifosato en una unidad productiva orgánica constituye una No Conformidad Crítica insubsanable. La ocultación deliberada de insumos ante el Organismo de Certificación CAAE es tipificada como fraude e intento de engaño, lo que resulta en la terminación fulminante de la auditoría, la pérdida o negación irrevocable de la certificación y la notificación obligatoria a AGROCALIDAD para el inicio del proceso sancionatorio correspondiente.',
+        auditContextExample: 'Un productor intenta ocultar envases de herbicidas sintéticos en un área no declarada antes de la visita del auditor. Durante la inspección física y el cotejo del balance de masas de insumos, el auditor descubre los recipientes ocultos. Se levanta de inmediato una No Conformidad Crítica por falsedad deliberada y contaminación potencial, procediendo a la suspensión inmediata del proceso de certificación.',
+        commonFalsePremises: [
+          'Se pueden guardar canecas de glifosato en la finca orgánica si no se usan frente al auditor.',
+          'Ocultar insumos prohibidos durante la auditoría permite mantener la certificación sin consecuencias.'
+        ],
+        keywords: ['ocultar glifosato', 'fraude', 'canecas', 'evasion', 'enganar auditor'],
+        officialSourceUrl: 'https://www.agrocalidad.gob.ec/organicos/',
+        lastUpdated: '2026'
+      };
+    } else if (isDirectCertification) {
+      updateStep({
+        stepNumber: 3,
+        name: 'Herramienta 1: Búsqueda en Base Interna',
+        description: 'Límite de Competencia Funcional: Solicitud de emisión directa de certificados. Derivando a gobernanza ISO/IEC 17065.',
+        status: 'warning',
+        toolUsed: 'BASE_CONOCIMIENTO',
+        outputSnippet: 'La emisión de certificados es potestad exclusiva del Comité de Decisión de CAAE.'
+      });
+      matchedItem = InternalKbEngine.getAllItems().find(i => i.id === 'caae-gobernanza-emision-certificados') || {
+        id: 'caae-gobernanza-emision-certificados',
+        norm: 'GLOBALGAP_IFA_V6',
+        normName: 'Organismo de Certificación CAAE — Gobernanza ISO/IEC 17065',
+        code: 'ISO/IEC 17065:2012 Cláusula 7.6 / Reglamento General GlobalG.A.P.',
+        chapter: 'Gobernanza Institucional: Proceso de Decisión y Emisión de Certificados',
+        title: 'Potestad Exclusiva e Indelegable del Comité de Certificación',
+        complianceLevel: 'ARTICULO_MANDATORIO',
+        officialText: 'Conforme al estándar internacional ISO/IEC 17065:2012 (Cláusula 7.6) y el Reglamento General de GlobalG.A.P., la decisión sobre la concesión, mantenimiento, ampliación o renovación de un certificado corresponde con exclusividad e independencia técnica al Comité de Decisión de Certificación de CAAE. Ningún asistente virtual, agente de inteligencia artificial o auditor individual tiene la potestad legal de emitir certificados directamente sin el previo proceso formal de auditoría y revisión colegiada.',
+        simpleExplanation: 'SOLICITUD NO PROCEDENTE. AgriNorma AI es un asistente técnico de consulta y apoyo en auditoría, pero NO tiene la facultad ni atribución legal para emitir certificados. Conforme al estándar internacional ISO/IEC 17065 que rige a CAAE, la emisión de un certificado GlobalG.A.P. o de Producción Orgánica es potestad exclusiva e indelegable del Comité de Certificación de CAAE, luego de completar la auditoría in situ, subsanar todas las No Conformidades y cumplir el ciclo formal de revisión técnica. Ningún certificado puede emitirse de forma automática ni inmediata.',
+        auditContextExample: 'Un operador solicita la emisión inmediata de su certificado GlobalG.A.P. para concretar una exportación al día siguiente. El Organismo de Certificación informa que la emisión de certificados no puede acelerarse de forma arbitraria y requiere el dictamen colegiado favorable del Comité de Certificación tras evaluar el expediente de auditoría.',
+        commonFalsePremises: [
+          'Un agente de IA o software puede emitir certificados oficiales de exportación.',
+          'Se puede emitir un certificado de urgencia sin revisión del Comité de Certificación.'
+        ],
+        keywords: ['emite mi certificado', 'emite certificado', 'emitir certificado', 'dame mi certificado'],
+        officialSourceUrl: 'https://www.caae.es/',
+        lastUpdated: '2026'
+      };
+    } else if (isOutOfScope) {
       updateStep({
         stepNumber: 3,
         name: 'Herramienta 1: Búsqueda en Base Interna',
@@ -151,8 +300,34 @@ export class AgentWorkflow {
         officialSourceUrl: 'https://eur-lex.europa.eu/eli/reg/2018/848/oj',
         lastUpdated: '2026'
       };
+    } else if (kbResults.length === 0) {
+      // No KB matches found despite passing domain token check → treat as out-of-scope
+      updateStep({
+        stepNumber: 3,
+        name: 'Herramienta 1: Búsqueda en Base Interna',
+        description: 'Valla de Contención: La consulta no tuvo coincidencias suficientes en la base normativa de CAAE.',
+        status: 'warning',
+        toolUsed: 'BASE_CONOCIMIENTO',
+        outputSnippet: 'Sin coincidencias normativas. Consulta fuera del alcance acreditado.'
+      });
+      matchedItem = {
+        id: 'fuera-de-alcance',
+        norm: 'GLOBALGAP_IFA_V6',
+        normName: 'Organismo de Certificación CAAE — Alcance Acreditado ISO/IEC 17065',
+        code: 'Guardrails de Gobernanza y Alcance Acreditado',
+        chapter: 'Políticas de Calidad y Restricción de Dominio Profesional',
+        title: 'Consulta Fuera del Alcance Acreditado de Auditoría',
+        complianceLevel: 'RECOMENDACION',
+        officialText: 'Conforme a los procedimientos de calidad del Organismo de Certificación CAAE y el marco de gobernanza ISO/IEC 17065, el asistente técnico AgriNorma AI está formalmente restringido a la interpretación de GlobalG.A.P. IFA v6, Cadena de Custodia CoC v6 y la Norma Orgánica Ecuatoriana (AGROCALIDAD Res. 034). Se declinan consultas que no correspondan al ámbito agroalimentario.',
+        simpleExplanation: 'Esta consulta se encuentra fuera del alcance técnico de AgriNorma AI. Como asistente de auditoría especializado para CAAE, el sistema está programado exclusivamente para responder preguntas sobre buenas prácticas agrícolas, inocuidad alimentaria, normas orgánicas, trazabilidad y requisitos de certificación de fincas o empacadoras. Por favor, formule una consulta relacionada con el sector agropecuario o los criterios normativos auditados.',
+        auditContextExample: 'Un usuario formula una consulta sobre un tema ajeno a la auditoría agrícola. El agente, en estricto apego a la Sección 7 del Manual de Uso y los estándares de imparcialidad de la norma ISO/IEC 17065, declina la consulta.',
+        commonFalsePremises: ['El agente de auditoría puede emitir dictámenes sobre temas ajenos a la certificación agroalimentaria.'],
+        keywords: ['fuera de alcance'],
+        officialSourceUrl: 'https://www.caae.es/',
+        lastUpdated: '2026'
+      };
     } else {
-      matchedItem = kbResults.length > 0 ? kbResults[0].item : InternalKbEngine.getAllItems()[0];
+      matchedItem = kbResults[0].item;
       updateStep({
         stepNumber: 3,
         name: 'Herramienta 1: Búsqueda en Base Interna',
@@ -195,7 +370,8 @@ export class AgentWorkflow {
     await new Promise(r => setTimeout(r, 300));
 
     const { falsePremises, alerts } = AlertEngine.evaluateQuery(query, matchedItem);
-    if (isOutOfScope) {
+    // Trigger out-of-scope alert for all cases where the matchedItem is the guardrail item
+    if (isOutOfScope || matchedItem.id === 'fuera-de-alcance') {
       alerts.push({
         id: `alert-${Date.now()}-out-of-scope`,
         type: 'INCONSISTENCIA_NORMATIVA',
@@ -260,7 +436,11 @@ export class AgentWorkflow {
           'Planes de manejo y cuaderno de campo actualizado',
           'Procedimientos documentados de segregación y balance de masas'
         ],
-        potentialFinding: hasFalsePremise
+        potentialFinding: isFraudOrEvasion
+          ? 'No Conformidad Crítica Insubsanable: Intento deliberado de ocultación de insumos prohibidos (Glifosato) y transgresión flagrante del Código de Integridad CAAE & AGROCALIDAD Res. 034.'
+          : isDirectCertification
+          ? 'Aclaración de Gobernanza: La emisión de certificados requiere la conclusión formal del proceso de auditoría y la resolución favorable del Comité de Certificación de CAAE (ISO/IEC 17065).'
+          : hasFalsePremise
           ? `No Conformidad Mayor bajo ${matchedItem.code}: Acción contraria al requisito obligatorio identificada en la premisa evaluada.`
           : `Conformidad Verificada: El operador cumple con las disposiciones de ${matchedItem.code}.`
       },

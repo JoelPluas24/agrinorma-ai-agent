@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   FileCheck2,
   Building2,
-  ShieldAlert
+  ShieldAlert,
+  AlertOctagon
 } from 'lucide-react';
 
 interface ResponseCardProps {
@@ -31,6 +32,17 @@ export const ResponseCard: React.FC<ResponseCardProps> = ({ response }) => {
     primary.code.toLowerCase().includes('guardrail') || 
     primary.title.toLowerCase().includes('fuera del alcance') ||
     response.alerts.some(a => a.title.includes('FUERA DEL ALCANCE'));
+
+  const isFraudOrEvasion =
+    primary.title.toLowerCase().includes('ocultacion') ||
+    primary.title.toLowerCase().includes('fraude') ||
+    primary.code.toLowerCase().includes('res. 034 arts. 13-15') ||
+    response.alerts.some(a => a.title.includes('Ocultación de Insumos') || a.title.includes('Fraude de Auditoría'));
+
+  const isDirectCertification =
+    primary.title.toLowerCase().includes('potestad exclusiva') ||
+    primary.code.toLowerCase().includes('clausula 7.6') ||
+    response.alerts.some(a => a.title.includes('Emisión de Certificados No Delegable'));
 
   // Dedicated Scope Restriction Card (Guardrail) for off-topic queries
   if (isOutOfScope) {
@@ -78,6 +90,163 @@ export const ResponseCard: React.FC<ResponseCardProps> = ({ response }) => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Dedicated Fraud & Evasion Rejection Card
+  if (isFraudOrEvasion) {
+    return (
+      <div className="bg-white border-2 border-red-500 rounded-xl p-6 sm:p-7 mb-8 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-red-100 border border-red-300 flex items-center justify-center text-red-700 shrink-0 shadow-2xs">
+            <AlertOctagon size={28} />
+          </div>
+
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="text-2xs font-black px-2.5 py-0.5 rounded bg-red-200 border border-red-400 text-red-950 uppercase tracking-wider">
+                🚨 ALERTA CRÍTICA DE INTEGRIDAD: RECHAZO DE SOLICITUD
+              </span>
+              <span className="text-2xs font-semibold text-slate-500">
+                Acreditación ISO/IEC 17065 • Código de Integridad CAAE & AGROCALIDAD
+              </span>
+            </div>
+
+            <h2 className="text-base sm:text-lg font-bold text-red-950 mb-2">
+              Solicitud Declinada: Intento de Ocultación de Insumos Prohibidos o Evasión de Control
+            </h2>
+
+            {/* Rejection Statement */}
+            <div className="p-4 bg-red-50/90 rounded-lg border border-red-200 text-red-950 text-xs sm:text-sm leading-relaxed font-medium mb-4 shadow-2xs">
+              <p className="font-bold text-red-900 mb-1">
+                🚫 DICTAMEN DE RECHAZO ÉTICO Y DEONTOLÓGICO:
+              </p>
+              <p>{response.simpleExplanation}</p>
+            </div>
+
+            {/* Audit Finding & Consequences */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 text-xs">
+              <div className="p-3 bg-slate-50 rounded-lg border border-red-200">
+                <span className="font-bold text-red-800 block mb-1">
+                  ⚖️ Tipificación del Hallazgo Normativo:
+                </span>
+                <p className="text-slate-700 leading-relaxed font-semibold">
+                  No Conformidad Crítica Insubsanable bajo AGROCALIDAD Res. 034 Arts. 13-15 y Reglamento General GlobalG.A.P.
+                </p>
+              </div>
+
+              <div className="p-3 bg-slate-50 rounded-lg border border-red-200">
+                <span className="font-bold text-red-800 block mb-1">
+                  ⚡ Consecuencias Reglamentarias Inmediatas:
+                </span>
+                <p className="text-slate-700 leading-relaxed">
+                  Suspensión o terminación fulminante de la auditoría, revocación irrevocable de la certificación y reporte formal a las autoridades competentes (AGROCALIDAD / GlobalG.A.P.).
+                </p>
+              </div>
+            </div>
+
+            {/* Protocol for Auditor */}
+            <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 mb-4">
+              <span className="font-bold text-slate-900 block mb-1">
+                📋 Protocolo Obligatorio para el Auditor de Campo:
+              </span>
+              <ul className="list-disc list-inside space-y-1 text-slate-600">
+                <li>Detener el recorrido de campo o inspección de bodega de insumos.</li>
+                <li>Tomar evidencia fotográfica georreferenciada de los recipientes o canecas y registrar números de lote y composición química.</li>
+                <li>Verificar el balance de masas de compras de insumos versus registros de campo y facturación.</li>
+                <li>Redactar No Conformidad Crítica en el acta de cierre de auditoría y remitir informe urgente a la Dirección Técnica de CAAE.</li>
+              </ul>
+            </div>
+
+            {/* Official Citation & Download Bar */}
+            <div className="border-t border-slate-200 pt-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-2xs text-slate-500">
+              <span>Fundamento Legal: <strong>AGROCALIDAD Res. 034 Arts. 13, 14, 15</strong> y Norma Internacional ISO/IEC 17065.</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => DocumentGenerator.generateWord(response)}
+                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 text-slate-700 font-medium text-xs flex items-center gap-1"
+                >
+                  <FileText size={12} className="text-blue-600" /> Acta Word (.docx)
+                </button>
+                <button
+                  onClick={() => DocumentGenerator.generatePdf(response)}
+                  className="px-2.5 py-1 bg-red-100 hover:bg-red-200 rounded border border-red-300 text-red-800 font-medium text-xs flex items-center gap-1"
+                >
+                  <FileCode2 size={12} className="text-red-600" /> Acta PDF (.pdf)
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Dedicated Direct Certification Governance Card
+  if (isDirectCertification) {
+    return (
+      <div className="bg-white border-2 border-indigo-400 rounded-xl p-6 sm:p-7 mb-8 shadow-sm">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-xl bg-indigo-100 border border-indigo-300 flex items-center justify-center text-indigo-700 shrink-0 shadow-2xs">
+            <Building2 size={28} />
+          </div>
+
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="text-2xs font-black px-2.5 py-0.5 rounded bg-indigo-200 border border-indigo-400 text-indigo-950 uppercase tracking-wider">
+                🏛️ GOBERNANZA INSTITUCIONAL (ISO/IEC 17065)
+              </span>
+              <span className="text-2xs font-semibold text-slate-500">
+                Reglamento General GlobalG.A.P. & Organismo CAAE
+              </span>
+            </div>
+
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-2">
+              Solicitud No Procedente: Potestad Exclusiva del Comité de Certificación
+            </h2>
+
+            {/* Explanation Statement */}
+            <div className="p-4 bg-indigo-50/90 rounded-lg border border-indigo-200 text-indigo-950 text-xs sm:text-sm leading-relaxed font-medium mb-4 shadow-2xs">
+              <p className="font-bold text-indigo-900 mb-1">
+                ℹ️ ACLARACIÓN DE COMPETENCIAS Y ALCANCE:
+              </p>
+              <p>{response.simpleExplanation}</p>
+            </div>
+
+            {/* Official Certification Workflow */}
+            <div className="border-t border-slate-200 pt-3">
+              <h4 className="text-2xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">
+                Ciclo Reglamentario Obligatorio para Obtener la Certificación:
+              </h4>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                  <span className="font-bold text-indigo-800 block mb-0.5">1. Solicitud y Registro</span>
+                  <span className="text-slate-600 text-2xs block">Contrato de certificación y registro del GGN en la base de datos de GlobalG.A.P.</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                  <span className="font-bold text-indigo-800 block mb-0.5">2. Auditoría In Situ</span>
+                  <span className="text-slate-600 text-2xs block">Inspección de fincas y empacadoras por auditor calificado de CAAE.</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                  <span className="font-bold text-indigo-800 block mb-0.5">3. Cierre de Hallazgos</span>
+                  <span className="text-slate-600 text-2xs block">Subsanación y aporte de evidencias objetivas de No Conformidades (máx. 28 días).</span>
+                </div>
+                <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+                  <span className="font-bold text-indigo-800 block mb-0.5">4. Decisión Colegiada</span>
+                  <span className="text-slate-600 text-2xs block">Dictamen vinculante emitido por el Comité de Decisión de Certificación de CAAE.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Foundation */}
+            <div className="border-t border-slate-200 pt-3 mt-4 text-2xs text-slate-500">
+              Fundamento Normativo: <strong>ISO/IEC 17065:2012 Cláusula 7.6 (Decisión de Certificación)</strong> y Reglamento General de GlobalG.A.P.
+            </div>
+
           </div>
         </div>
       </div>

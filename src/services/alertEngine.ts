@@ -41,31 +41,71 @@ export class AlertEngine {
       });
     }
 
-    // Rule 2: Glyphosate or synthetic chemicals in organic borders/ditches
+    // Rule 0: Fraud, evasion, hiding chemicals or tampering records
     if (
-      (cleanQuery.includes('glifosato') || cleanQuery.includes('herbicida') || cleanQuery.includes('quimico') || cleanQuery.includes('urea')) &&
-      (matchedNorm.norm === 'NORMA_ORGANICA_ECUATORIANA' || cleanQuery.includes('organico') || cleanQuery.includes('borde') || cleanQuery.includes('camino'))
+      (cleanQuery.includes('ocultar') || cleanQuery.includes('esconder') || cleanQuery.includes('falsear') || cleanQuery.includes('adulterar') || cleanQuery.includes('enganar') || cleanQuery.includes('trampa')) &&
+      (cleanQuery.includes('glifosato') || cleanQuery.includes('quimico') || cleanQuery.includes('caneca') || cleanQuery.includes('auditor') || cleanQuery.includes('registro') || cleanQuery.includes('insumo'))
     ) {
-      if (cleanQuery.includes('borde') || cleanQuery.includes('zanja') || cleanQuery.includes('camino') || cleanQuery.includes('no toque') || cleanQuery.includes('lindero')) {
-        falsePremises.push({
-          detected: true,
-          premiseText: 'Premisa errónea: "Se puede aplicar glifosato o agroquímicos sintéticos en los bordes, zanjas o caminos si no toca el cultivo principal."',
-          correction: 'La Norma Orgánica Ecuatoriana (Res. 034 de Agrocalidad, Art. 14) prohíbe de forma total el ingreso y uso de sustancias de síntesis química en CUALQUIER área dentro del perímetro de la unidad productiva registrada, incluidos linderos, zanjas y vías de acceso.',
-          riskDescription: 'Riesgo crítico de pérdida fulminante de la certificación orgánica de la finca completa y sanción legal de Agrocalidad por contaminación intencional.',
-          severity: 'CRITICA',
-          affectedNormCode: 'Art. 14 Res. 034'
-        });
+      falsePremises.push({
+        detected: true,
+        premiseText: 'Premisa fraudulenta e ilícita: "Se pueden o deben ocultar canecas de glifosato o agroquímicos antes de que llegue el auditor para aprobar la inspección."',
+        correction: 'La Norma Orgánica Ecuatoriana (Res. 034 de Agrocalidad) y el Reglamento General de GlobalG.A.P. establecen la prohibición absoluta de glifosato y tipifican la ocultación deliberada de insumos como fraude flagrante e intento de engaño al Organismo de Certificación CAAE.',
+        riskDescription: 'No Conformidad Crítica Insubsanable. Supone la terminación fulminante de la auditoría, la pérdida irrevocable del estatus orgánico/GlobalGAP y la notificación obligatoria a AGROCALIDAD para inicio de sumario sancionatorio legal.',
+        severity: 'CRITICA',
+        affectedNormCode: 'Res. 034 Arts. 13-15 / Código de Integridad CAAE'
+      });
 
-        alerts.push({
-          id: `alert-${Date.now()}-1`,
-          type: 'PREMISA_FALSA',
-          severity: 'CRITICA',
-          title: '🚨 ALERTA CRÍTICA: Premisa Falsa de Alto Riesgo en Producción Orgánica',
-          description: 'La consulta asume falsamente que el uso perimetral de herbicidas sintéticos no vulnera la condición orgánica. Este acto constituye causal de descertificación inmediata.',
-          recommendation: 'Detener de inmediato cualquier uso de herbicidas sintéticos. Utilice métodos mecánicos (desbrozadora, machete) o coberturas vegetales vivas aprobadas en el Anexo 1 de Agrocalidad.',
-          timestamp: new Date().toLocaleTimeString('es-EC')
-        });
-      }
+      alerts.push({
+        id: `alert-${Date.now()}-fraude-critico`,
+        type: 'PREMISA_FALSA',
+        severity: 'CRITICA',
+        title: '🚨 ALERTA CRÍTICA: Intento de Ocultación de Insumos Prohibidos y Fraude de Auditoría',
+        description: 'La consulta solicita métodos para ocultar recipientes de glifosato ante la inspección de auditoría. Este acto constituye fraude flagrante contra las normas de certificación agroalimentaria.',
+        recommendation: 'Rechazar tajantemente la solicitud. El personal auditado debe entregar un inventario transparente y fidedigno. Todo hallazgo de glifosato oculto acarrea suspensión o revocación inmediata.',
+        timestamp: new Date().toLocaleTimeString('es-EC')
+      });
+    }
+
+    // Rule Direct Certification: Extralimitation
+    if (
+      (cleanQuery.includes('emite') || cleanQuery.includes('emitir') || cleanQuery.includes('dame') || cleanQuery.includes('certificame')) &&
+      (cleanQuery.includes('certificado') || cleanQuery.includes('certificacion') || cleanQuery.includes('exportar manana'))
+    ) {
+      alerts.push({
+        id: `alert-${Date.now()}-direct-cert`,
+        type: 'INCONSISTENCIA_NORMATIVA',
+        severity: 'MAYOR',
+        title: '⚠️ ADVERTENCIA DE GOBERNANZA: Emisión de Certificados No Delegable',
+        description: 'La emisión formal de certificados es potestad exclusiva e indelegable del Comité de Decisión de Certificación de CAAE bajo la norma internacional ISO/IEC 17065.',
+        recommendation: 'Completar el proceso formal de auditoría in situ, subsanar las No Conformidades y aguardar la resolución técnica del Comité de Certificación.',
+        timestamp: new Date().toLocaleTimeString('es-EC')
+      });
+    }
+
+    // Rule 2: Glyphosate or synthetic chemicals in organic farming
+    if (
+      (cleanQuery.includes('glifosato') || cleanQuery.includes('herbicida') || cleanQuery.includes('paraquat') || cleanQuery.includes('urea')) &&
+      (matchedNorm.norm === 'NORMA_ORGANICA_ECUATORIANA' || cleanQuery.includes('organico') || cleanQuery.includes('organica') || cleanQuery.includes('borde') || cleanQuery.includes('finca') || cleanQuery.includes('cultivo')) &&
+      !cleanQuery.includes('ocultar') && !cleanQuery.includes('esconder')
+    ) {
+      falsePremises.push({
+        detected: true,
+        premiseText: 'Premisa errónea: "Se puede usar o tener glifosato / agroquímicos sintéticos en la producción orgánica (en bordes, zanjas o cultivo)."',
+        correction: 'La Norma Orgánica Ecuatoriana (Res. 034 de Agrocalidad, Arts. 13 y 14) prohíbe de forma total el ingreso, almacenamiento y uso de sustancias de síntesis química en cualquier área dentro del perímetro de la unidad productiva registrada, incluidos linderos, zanjas y vías de acceso.',
+        riskDescription: 'Riesgo crítico de pérdida fulminante de la certificación orgánica de la finca completa y sanción legal de Agrocalidad por contaminación intencional.',
+        severity: 'CRITICA',
+        affectedNormCode: 'Art. 13-14 Res. 034'
+      });
+
+      alerts.push({
+        id: `alert-${Date.now()}-glifosato-critico`,
+        type: 'PREMISA_FALSA',
+        severity: 'CRITICA',
+        title: '🚨 ALERTA CRÍTICA: Prohibición Absoluta de Glifosato en Producción Orgánica',
+        description: 'La consulta plantea el uso o presencia de glifosato/herbicidas sintéticos. Este acto constituye causal de descertificación inmediata.',
+        recommendation: 'Detener de inmediato cualquier uso de herbicidas sintéticos. Utilice métodos mecánicos (desbrozadora, machete) o coberturas vegetales vivas aprobadas en el Anexo 1 de Agrocalidad.',
+        timestamp: new Date().toLocaleTimeString('es-EC')
+      });
     }
 
     // Rule 3: Child labor under 15 with parent consent in GlobalGAP IFA v6
@@ -143,8 +183,13 @@ export class AlertEngine {
       });
     }
 
-    // If no specific false premise was detected, generate standard compliance advisory (unless out-of-scope)
-    if (falsePremises.length === 0 && matchedNorm.id !== 'fuera-de-alcance') {
+    // If no specific false premise was detected, generate standard compliance advisory (unless special cases or alerts present)
+    const isSpecialCase = 
+      matchedNorm.id === 'fuera-de-alcance' || 
+      matchedNorm.id === 'org-ec-fraude-ocultamiento-insumos' || 
+      matchedNorm.id === 'caae-gobernanza-emision-certificados';
+
+    if (falsePremises.length === 0 && !isSpecialCase && alerts.length === 0) {
       alerts.push({
         id: `alert-${Date.now()}-info`,
         type: 'INCONSISTENCIA_NORMATIVA',
